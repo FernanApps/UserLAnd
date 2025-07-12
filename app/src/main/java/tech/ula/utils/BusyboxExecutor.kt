@@ -59,7 +59,7 @@ class BusyboxExecutor(
         }
     }
 
-    fun executeProotCommand(
+    fun executeProotCommandOld(
         command: String,
         filesystemDirName: String,
         commandShouldTerminate: Boolean,
@@ -117,6 +117,102 @@ class BusyboxExecutor(
             FailedExecution("$err")
         }
     }
+
+    fun executeProotCommand(
+        command: String,
+        filesystemDirName: String,
+        commandShouldTerminate: Boolean,
+        env: HashMap<String, String> = hashMapOf(),
+        listener: (String) -> Any = discardOutput,
+        coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
+    ): ExecutionResult {
+        Log.d("TESTING", "Inicio executeProotCommand")
+        Log.d("TESTING", "command: $command")
+        Log.d("TESTING", "filesystemDirName: $filesystemDirName")
+        Log.d("TESTING", "commandShouldTerminate: $commandShouldTerminate")
+
+        if (!busyboxWrapper.busyboxIsPresent()) {
+            Log.d("TESTING", "busybox no está presente")
+            return MissingExecutionAsset("busybox")
+        }
+
+        if (!busyboxWrapper.prootIsPresent()) {
+            Log.d("TESTING", "proot no está presente")
+            return MissingExecutionAsset("proot")
+        }
+
+        if (!busyboxWrapper.executionScriptIsPresent()) {
+            Log.d("TESTING", "execution script no está presente")
+            return MissingExecutionAsset("execution script")
+        }
+
+        val prootDebugEnabled = prootDebugLogger.isEnabled
+        Log.d("TESTING", "prootDebugEnabled: $prootDebugEnabled")
+
+        val prootDebugLevel =
+            if (prootDebugEnabled) prootDebugLogger.verbosityLevel else "-1"
+        Log.d("TESTING", "prootDebugLevel: $prootDebugLevel")
+
+        val updatedCommand = busyboxWrapper.addBusyboxAndProot(command)
+        Log.d("TESTING", "updatedCommand: $updatedCommand")
+
+        val filesystemDir = File("${ulaFiles.filesDir.absolutePath}/$filesystemDirName")
+        Log.d("TESTING", "filesystemDir: ${filesystemDir.absolutePath}")
+
+        env.putAll(busyboxWrapper.getProotEnv(filesystemDir, prootDebugLevel))
+        Log.d("TESTING", "env: $env")
+
+        val processBuilder = ProcessBuilder(updatedCommand)
+        Log.d("TESTING", "Creado ProcessBuilder con directorio ${ulaFiles.filesDir}")
+
+        processBuilder.directory(ulaFiles.filesDir)
+        processBuilder.environment().putAll(env)
+        processBuilder.redirectErrorStream(true)
+
+        return try {
+            val process = processBuilder.start()
+            Log.d("TESTING", "Proceso iniciado correctamente")
+
+            when {
+                prootDebugEnabled && commandShouldTerminate -> {
+                    Log.d("TESTING", "prootDebugEnabled && commandShouldTerminate")
+                    listener("Output redirecting to proot debug log")
+                    prootDebugLogger.logStream(process.inputStream, coroutineScope)
+                    val result = getProcessResult(process)
+                    Log.d("TESTING", "Resultado comando terminado: $result")
+                    result
+                }
+
+                prootDebugEnabled && !commandShouldTerminate -> {
+                    Log.d("TESTING", "prootDebugEnabled && !commandShouldTerminate")
+                    listener("Output redirecting to proot debug log")
+                    prootDebugLogger.logStream(process.inputStream, coroutineScope)
+                    val ongoing = OngoingExecution(process)
+                    Log.d("TESTING", "Proceso ongoing (debug): $ongoing")
+                    ongoing
+                }
+
+                commandShouldTerminate -> {
+                    Log.d("TESTING", "commandShouldTerminate (sin debug)")
+                    collectOutput(process.inputStream, listener)
+                    val result = getProcessResult(process)
+                    Log.d("TESTING", "Resultado comando terminado: $result")
+                    result
+                }
+
+                else -> {
+                    Log.d("TESTING", "else -> ongoing (sin debug)")
+                    val ongoing = OngoingExecution(process)
+                    Log.d("TESTING", "Proceso ongoing: $ongoing")
+                    ongoing
+                }
+            }
+        } catch (err: Exception) {
+            Log.e("TESTING", "Excepción al ejecutar proceso: $err", err)
+            FailedExecution("$err")
+        }
+    }
+
 
     suspend fun recursivelyDelete(absolutePath: String): ExecutionResult = withContext(Dispatchers.IO) {
         val command = "rm -rf $absolutePath"

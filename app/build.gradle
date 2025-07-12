@@ -58,6 +58,41 @@ android {
         }
     }
 
+    /*
+    productFlavors {
+        x86_64 {
+            dimension "arch"
+            ndk {
+                abiFilters "x86_64"
+            }
+            versionNameSuffix "-x86_64"
+        }
+        arm64 {
+            dimension "arch"
+            ndk {
+                abiFilters "arm64-v8a"
+            }
+            versionNameSuffix "-arm64"
+        }
+        armv7 {
+            dimension "arch"
+            ndk {
+                abiFilters "armeabi-v7a"
+            }
+            versionNameSuffix "-armv7"
+        }
+        x86 {
+            dimension "arch"
+            ndk {
+                abiFilters "x86"
+            }
+            versionNameSuffix "-x86"
+        }
+    }
+
+    flavorDimensions "arch"
+    */
+
     signingConfigs {
         beta {
             storeFile project.file('../keystore.jks')
@@ -306,10 +341,10 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidx_test_ext_version"
     // Barista packages espresso-core and espresso-contrib
     androidTestImplementation 'androidx.test.espresso:espresso-intents:3.2.0'
-    androidTestImplementation('com.schibsted.spain:barista:3.1.0') {
-        exclude group: 'com.android.support'
-        exclude group: 'org.jetbrains.kotlin'
-    }
+    //androidTestImplementation('com.schibsted.spain:barista:3.1.0') {
+    //    exclude group: 'com.android.support'
+    //    exclude group: 'org.jetbrains.kotlin'
+    //}
     androidTestUtil "androidx.test:orchestrator:$androidx_test_version"
 
     implementation 'com.google.code.gson:gson:2.8.6'
