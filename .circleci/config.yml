@@ -67,8 +67,8 @@ reference:
 
   android_dependencies: &android_dependencies
     run:
-      name: Download Android dependencies
-      command: ./gradlew androidDependencies
+      name: Check NDK Version (Pre-installed) And Download Android dependencies
+      command:  cat $ANDROID_HOME/ndk-bundle/source.properties || echo "NDK not found" && ./gradlew androidDependencies
 
   # Secrets
   export_android_key: &export_android_key
