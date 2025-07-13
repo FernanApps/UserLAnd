@@ -15,8 +15,8 @@ import tech.ula.utils.defaultSharedPreferences
 class SettingsFragment : PreferenceFragmentCompat() {
 
     private val prootDebugLogger by lazy {
-        val ulaFiles = UlaFiles(activity!!, activity!!.applicationInfo.nativeLibraryDir)
-        ProotDebugLogger(activity!!.defaultSharedPreferences, ulaFiles)
+        val ulaFiles = UlaFiles(requireActivity(), requireActivity().applicationInfo.nativeLibraryDir)
+        ProotDebugLogger(requireActivity().defaultSharedPreferences, ulaFiles)
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
@@ -30,7 +30,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         val clearAutoStartPreference: Preference = findPreference("pref_clear_auto_start")!!
         clearAutoStartPreference.setOnPreferenceClickListener {
-            val prefs = activity!!.getSharedPreferences("apps", Context.MODE_PRIVATE)
+            val prefs = requireActivity().getSharedPreferences("apps", Context.MODE_PRIVATE)
             with(prefs.edit()) {
                 remove("AutoApp")
                 apply()

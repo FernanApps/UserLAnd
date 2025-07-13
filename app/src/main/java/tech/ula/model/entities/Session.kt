@@ -2,7 +2,8 @@ package tech.ula.model.entities
 
 import android.os.Parcelable
 import androidx.room.* // ktlint-disable no-wildcard-imports
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
+
 
 fun String.toServiceType(): ServiceType {
     return when (this) {
@@ -13,7 +14,7 @@ fun String.toServiceType(): ServiceType {
     }
 }
 
-sealed class ServiceType : Parcelable {
+/*sealed class ServiceType : Parcelable {
     @Parcelize
     object Unselected : ServiceType() {
         override fun toString(): String {
@@ -41,8 +42,19 @@ sealed class ServiceType : Parcelable {
             return "xsdl"
         }
     }
+}*/
+
+@Parcelize
+enum class ServiceType : Parcelable {
+    Unselected,
+    Ssh,
+    Vnc,
+    Xsdl;
+
+    override fun toString(): String = name.lowercase()
 }
 
+/*
 class ServiceTypeConverter {
     @TypeConverter
     fun fromString(value: String): ServiceType {
@@ -54,7 +66,22 @@ class ServiceTypeConverter {
         return value.toString()
     }
 }
+*/
+class ServiceTypeConverter {
+    @TypeConverter
+    fun fromString(value: String): ServiceType {
+        return try {
+            ServiceType.valueOf(value)
+        } catch (e: IllegalArgumentException) {
+            ServiceType.Unselected
+        }
+    }
 
+    @TypeConverter
+    fun fromServiceType(value: ServiceType): String {
+        return value.name
+    }
+}
 @Parcelize
 @Entity(tableName = "session",
         foreignKeys = [ForeignKey(
@@ -65,7 +92,6 @@ class ServiceTypeConverter {
         indices = [
             Index(value = ["filesystemId"])
         ])
-@TypeConverters(ServiceTypeConverter::class)
 data class Session(
     @PrimaryKey(autoGenerate = true)
     val id: Long,

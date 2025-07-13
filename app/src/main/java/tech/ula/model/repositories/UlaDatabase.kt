@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import android.content.Context
+import androidx.room.TypeConverters
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import tech.ula.model.daos.AppsDao
@@ -14,8 +15,10 @@ import tech.ula.model.entities.Session
 import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
+import tech.ula.model.entities.ServiceTypeConverter
 
 @Database(entities = [Session::class, Filesystem::class, App::class], version = 7, exportSchema = true)
+@TypeConverters(ServiceTypeConverter::class)
 abstract class UlaDatabase : RoomDatabase() {
 
     abstract fun sessionDao(): SessionDao

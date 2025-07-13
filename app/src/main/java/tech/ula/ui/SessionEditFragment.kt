@@ -14,8 +14,8 @@ import androidx.core.os.bundleOf
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import kotlinx.android.synthetic.main.frag_session_edit.* // ktlint-disable no-wildcard-imports
 import tech.ula.R
+import tech.ula.databinding.FragSessionEditBinding
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.Session
@@ -25,6 +25,9 @@ import tech.ula.viewmodel.SessionEditViewModel
 import tech.ula.viewmodel.SessionEditViewmodelFactory
 
 class SessionEditFragment : Fragment() {
+
+    private var _binding: FragSessionEditBinding? = null
+    private val binding get() = _binding!!
 
     private lateinit var activityContext: Activity
     private val args: SessionEditFragmentArgs by navArgs()
@@ -51,8 +54,8 @@ class SessionEditFragment : Fragment() {
 
             val usedPosition = if (filesystemNamePosition < 0) 0 else filesystemNamePosition
 
-            spinner_filesystem_list.adapter = filesystemAdapter
-            spinner_filesystem_list.setSelection(usedPosition)
+            binding.spinnerFilesystemList.adapter = filesystemAdapter
+            binding.spinnerFilesystemList.setSelection(usedPosition)
 
             filesystemList = it
         }
@@ -84,8 +87,14 @@ class SessionEditFragment : Fragment() {
         setHasOptionsMenu(true)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.frag_session_edit, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FragSessionEditBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -102,18 +111,18 @@ class SessionEditFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        activityContext = activity!!
+        activityContext = requireActivity()
         sessionEditViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        text_input_session_name.setText(session.name)
+        
+        binding.textInputSessionName.setText(session.name)
         if (session.isAppsSession) {
-            text_input_session_name.isEnabled = false
+            binding.textInputSessionName.isEnabled = false
         }
-        text_input_session_name.addTextChangedListener(object : TextWatcher {
+        binding.textInputSessionName.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
                 session.name = p0.toString()
             }
@@ -122,7 +131,8 @@ class SessionEditFragment : Fragment() {
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
         })
 
-        spinner_filesystem_list.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        
+        binding.spinnerFilesystemList.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -139,14 +149,15 @@ class SessionEditFragment : Fragment() {
                         is FilesystemDropdownItem.FilesystemItem -> {
                             val filesystem = item.filesystem
                             updateFilesystemDetailsForSession(filesystem)
-                            text_input_username.setText(filesystem.defaultUsername)
+                            
+                            binding.textInputUsername.setText(filesystem.defaultUsername)
                         }
                     }
                 }
             }
         }
 
-        spinner_session_service_type.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        binding.spinnerSessionServiceType.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
@@ -156,8 +167,8 @@ class SessionEditFragment : Fragment() {
             }
         }
 
-        text_input_username.isEnabled = false
-        text_input_username.addTextChangedListener(object : TextWatcher {
+        binding.textInputUsername.isEnabled = false
+        binding.textInputUsername.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
                 session.username = p0.toString()
             }
@@ -171,10 +182,10 @@ class SessionEditFragment : Fragment() {
         val navController = NavHostFragment.findNavController(this)
 
         if (session.name == "") {
-            text_input_session_name.error = getString(R.string.error_session_name)
+            binding.textInputSessionName.error = getString(R.string.error_session_name)
         }
         if (session.filesystemName == "") {
-            val errorText = spinner_filesystem_list.selectedView as TextView
+            val errorText = binding.spinnerFilesystemList.selectedView as TextView
             errorText.error = ""
             errorText.setTextColor(Color.RED)
             errorText.text = getString(R.string.error_filesystem_name)

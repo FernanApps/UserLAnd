@@ -97,7 +97,7 @@ class FilesystemEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(
 }
 
 class FilesystemEditViewmodelFactory(private val ulaDatabase: UlaDatabase) : ViewModelProvider.NewInstanceFactory() {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
         @Suppress("UNCHECKED_CAST")
         return FilesystemEditViewModel(ulaDatabase) as T
     }

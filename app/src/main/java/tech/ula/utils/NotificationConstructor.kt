@@ -42,17 +42,38 @@ class NotificationConstructor(val context: Context) {
     fun buildPersistentServiceNotification(): Notification {
         val sessionListIntent = Intent(context, MainActivity::class.java)
         sessionListIntent.type = "sessionList"
-        val pendingSessionListIntent = PendingIntent
-                .getActivity(context, 0, sessionListIntent, 0)
+        //val pendingSessionListIntent = PendingIntent
+        //        .getActivity(context, 0, sessionListIntent, 0)
+        var pendingSessionListIntent: PendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PendingIntent.getActivity(context, 0, sessionListIntent, PendingIntent.FLAG_MUTABLE)
+        } else {
+            PendingIntent.getActivity(context, 0, sessionListIntent,
+                PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE)
+        }
+
 
         val stopSessionsIntent = Intent(context, ServerService::class.java).putExtra("type", "stopAll")
-        val stopSessionsPendingIntent = PendingIntent
-                .getService(context, 0, stopSessionsIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+        //val stopSessionsPendingIntent = PendingIntent
+        //        .getService(context, 0, stopSessionsIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val stopSessionsPendingIntent =if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PendingIntent.getActivity(context, 0, stopSessionsIntent, PendingIntent.FLAG_MUTABLE)
+        } else {
+            PendingIntent.getActivity(context, 0, stopSessionsIntent,
+                PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE)
+        }
+
 
         val settingsIntent = Intent(context, MainActivity::class.java)
         settingsIntent.type = "settings"
-        val settingsPendingIntent = PendingIntent
-                .getActivity(context, 0, settingsIntent, 0)
+        //val settingsPendingIntent = PendingIntent
+        //        .getActivity(context, 0, settingsIntent, 0)
+
+        val settingsPendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PendingIntent.getActivity(context, 0, settingsIntent, PendingIntent.FLAG_MUTABLE)
+        } else {
+            PendingIntent.getActivity(context, 0, settingsIntent,
+                PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE)
+        }
 
         val builder = NotificationCompat.Builder(context, serviceNotificationChannelId)
                 .setSmallIcon(R.drawable.ic_stat_icon)
